@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -15,11 +16,13 @@ namespace Console.Logging
         private void OnEnable()
         {
             Application.logMessageReceived += CreateLog;
+            ConsoleLogFilter.FilterToggled += OnFilterToggled;
         }
 
         private void OnDisable()
         {
             Application.logMessageReceived -= CreateLog;
+            ConsoleLogFilter.FilterToggled -= OnFilterToggled;
         }
         
         private void CreateLog(string text, string stackTrace, LogType type)
@@ -32,6 +35,15 @@ namespace Console.Logging
             logInstance.Setup($"{timestamp}: {text}", stackTrace, type);
             
             _logs.Add(logInstance);
+        }
+
+        private void OnFilterToggled(LogType logType, bool isOn)
+        {
+            var logs = _logs.Where(log => log.LogType == logType).ToList();
+            foreach (var log in logs)
+            {
+                log.gameObject.SetActive(isOn);
+            }
         }
 
         [UsedImplicitly]

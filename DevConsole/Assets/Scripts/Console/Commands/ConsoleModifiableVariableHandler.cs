@@ -15,9 +15,7 @@ namespace Console.Commands
             
             foreach (FieldInfo fieldInfo in allFields)
             {
-                ConsoleModifiableVariableAttribute variableAttribute = 
-                    (ConsoleModifiableVariableAttribute) fieldInfo.GetCustomAttribute(typeof(ConsoleModifiableVariableAttribute));
-            
+                ConsoleModifiableVariableAttribute variableAttribute = fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>();
                 if (variableAttribute != null)
                 {
                     if (variableAttribute.VariableName.Equals(variableName))
@@ -30,7 +28,7 @@ namespace Console.Commands
             return null;
         }
 
-        private static FieldInfo[] FindModifiableFields()
+        internal static FieldInfo[] FindModifiableFields()
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             List<Type> types = new List<Type>();
@@ -46,6 +44,11 @@ namespace Console.Commands
                     .Where(field => field.IsDefined(typeof(ConsoleModifiableVariableAttribute), true))
                     .ToArray())
                 .ToArray();
+        }
+
+        internal static string GetNameOfField(FieldInfo fieldInfo)
+        {
+            return fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>().VariableName;
         }
 
         private static Object GetInstanceOfField(FieldInfo fieldInfo)

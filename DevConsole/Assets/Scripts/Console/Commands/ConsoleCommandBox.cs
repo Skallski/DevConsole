@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -6,6 +8,8 @@ namespace Console.Commands
     public class ConsoleCommandBox : MonoBehaviour
     {
         [SerializeField] private TMPro.TMP_InputField _inputField;
+        
+        private readonly List<string> _archivedCommands = new List<string>();
 
 #if UNITY_EDITOR
         private void Reset()
@@ -57,6 +61,7 @@ namespace Console.Commands
         public void ExecuteCommand()
         {
             ExecuteCommand(_inputField.text);
+            _archivedCommands.Add(_inputField.text);
             _inputField.text = string.Empty;
         }
 
@@ -77,19 +82,32 @@ namespace Console.Commands
 
             var command = parts[0];
             
-            if (command.Equals("/set")) // example: /set [variableName] [value]
+            switch (command)
             {
-                SetVariable(parts[1], parts[2]);
-            }
-            else if (command.Equals("/get")) // example: /get [variableName]
-            {
-                GetVariable(parts[1]);
+                // example: /set [variableName] [value]
+                case "/set":
+                {
+                    SetVariable(parts[1], parts[2]);
+                    break;
+                }
+                // example: /get [variableName]
+                case "/get":
+                {
+                    GetVariable(parts[1]);
+                    break;
+                }
+                // example: /getAll
+                case "/getAll":
+                {
+                    GetAllVariables();
+                    break;
+                }
             }
         }
         
         private static void SetVariable(string variableName, object value)
         {
-            System.Reflection.FieldInfo fieldInfo = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
+            var fieldInfo = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
             if (fieldInfo == null)
             {
                 Debug.LogError($"{variableName} is not valid variable!");
@@ -116,6 +134,20 @@ namespace Console.Commands
             {
                 Debug.LogError($"{variableName} is not valid variable!");
             }
+        }
+
+        private static void GetAllVariables()
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            var fields = ConsoleModifiableVariableHandler.FindModifiableFields();
+            foreach (var field in fields)
+            {
+                sb.Append($"{ConsoleModifiableVariableHandler.GetNameOfField(field)}, ");
+            }
+            
+            Debug.Log("Variables:");
+            Debug.Log(sb.ToString());
         }
     }
 }

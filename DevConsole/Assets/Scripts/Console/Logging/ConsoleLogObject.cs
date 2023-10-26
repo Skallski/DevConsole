@@ -6,7 +6,7 @@ namespace Console.Logging
 {
     public class ConsoleLogObject : MonoBehaviour, IPointerUpHandler
     {
-        public static event Action<ConsoleLogObject> OnConsoleLogSelected;
+        internal static event Action<ConsoleLogObject> OnConsoleLogSelected;
         private static readonly Color SelectedBackgroundColor = new Color32(255, 255, 255, 42);
         private static readonly Color DeselectedBackgroundColor = new Color32(255, 255, 255, 0);
 
@@ -16,6 +16,7 @@ namespace Console.Logging
         
         internal string Text { get; private set; }
         internal string StackTrace { get; private set; }
+        internal LogType LogType { get; private set; }
         internal bool Selected { get; private set; }
 
         private void OnEnable()
@@ -32,6 +33,7 @@ namespace Console.Logging
         {
             Text = text;
             StackTrace = stackTrace;
+            LogType = type;
 
             var displayedTypeText = type.ToString().ToUpper();
             _typeLabel.SetText(type switch
