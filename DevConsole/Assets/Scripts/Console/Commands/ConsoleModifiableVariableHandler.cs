@@ -9,12 +9,31 @@ namespace Console.Commands
 {
     public static class ConsoleModifiableVariableHandler
     {
-        internal static FieldInfo GetModifiableField(string variableName)
+        internal class ModifiableVariableData
         {
-            FieldInfo[] allFields = FindModifiableFields();
-            
-            foreach (FieldInfo fieldInfo in allFields)
+            public readonly FieldInfo FieldInfo;
+            public readonly Object Instance;
+            public readonly object InitialValue;
+
+            public ModifiableVariableData(FieldInfo fieldInfo, Object instance)
             {
+                FieldInfo = fieldInfo;
+                Instance = instance;
+                InitialValue = fieldInfo.GetValue(instance);
+            }
+        }
+
+        private static readonly List<ModifiableVariableData> CachedModifiableVariableDataSet =
+            new List<ModifiableVariableData>();
+        
+        internal static ModifiableVariableData GetModifiableField(string variableName)
+        {
+            List<ModifiableVariableData> allFields = FindModifiableFields();
+            
+            foreach (ModifiableVariableData data in allFields)
+            {
+                FieldInfo fieldInfo = data.FieldInfo;
+                
                 ConsoleModifiableVariableAttribute variableAttribute = 
                     fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>();
                 
@@ -22,7 +41,7 @@ namespace Console.Commands
                 {
                     if (variableAttribute.VariableName.Equals(variableName))
                     {
-                        return fieldInfo;
+                        return data;
                     }
                 }
             }
@@ -30,29 +49,38 @@ namespace Console.Commands
             return null;
         }
 
-        internal static FieldInfo[] FindModifiableFields()
+        internal static List<ModifiableVariableData> FindModifiableFields()
         {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            List<Type> types = new List<Type>();
-
-            foreach (var assembly in assemblies)
+            if (CachedModifiableVariableDataSet.Count == 0)
             {
-                types.AddRange(assembly.GetTypes());
+                IEnumerable<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                List<ModifiableVariableData> fields = new List<ModifiableVariableData>();
+
+                foreach (var assembly in assemblies)
+                {
+                    var types = assembly.GetTypes();
+                    foreach (var type in types)
+                    {
+                        if (type.IsSubclassOf(typeof(MonoBehaviour)) || type.IsSubclassOf(typeof(ScriptableObject)))
+                        {
+                            var typeFields = 
+                                type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                                .Where(field => field.IsDefined(typeof(ConsoleModifiableVariableAttribute), true));
+
+                            foreach (var field in typeFields)
+                            {
+                                fields.Add(new ModifiableVariableData(field, GetInstanceOfField(field)));
+                            }
+                        }
+                    }
+                }
+
+                CachedModifiableVariableDataSet.AddRange(fields);
             }
 
-            return types
-                .Where(type => type.IsSubclassOf(typeof(MonoBehaviour)) || type.IsSubclassOf(typeof(ScriptableObject)))
-                .SelectMany(type => type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(field => field.IsDefined(typeof(ConsoleModifiableVariableAttribute), true))
-                    .ToArray())
-                .ToArray();
+            return CachedModifiableVariableDataSet;
         }
-
-        internal static string GetNameOfField(FieldInfo fieldInfo)
-        {
-            return fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>().VariableName;
-        }
-
+        
         private static Object GetInstanceOfField(FieldInfo fieldInfo)
         {
             Type declaringType = fieldInfo.DeclaringType;
@@ -77,46 +105,64 @@ namespace Console.Commands
             return null;
         }
 
-        internal static bool GetModifiableFieldValue(string variableName, out object value)
+        internal static string GetNameOfField(FieldInfo fieldInfo)
         {
-            FieldInfo fieldInfo = GetModifiableField(variableName);
-            return GetModifiableFieldValue(fieldInfo, out value);
+            return fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>().VariableName;
         }
 
-        internal static bool GetModifiableFieldValue(FieldInfo fieldInfo, out object value)
+        internal static bool GetModifiableFieldValue(string variableName, out object value)
+        {
+            ModifiableVariableData modifiableVariableData = GetModifiableField(variableName);
+            return GetModifiableFieldValue(modifiableVariableData, out value);
+        }
+
+        internal static bool GetModifiableFieldValue(ModifiableVariableData data, out object value)
         {
             value = null;
-            
+
+            if (data == null)
+            {
+                return false;
+            }
+
+            FieldInfo fieldInfo = data.FieldInfo;
             if (fieldInfo == null)
             {
                 return false;
             }
-            
-            var instance = GetInstanceOfField(fieldInfo);
+
+            Object instance = data.Instance;
             if (instance == null)
             {
                 return false;
             }
             
             value = fieldInfo.GetValue(instance);
+            
             return true;
         }
 
         internal static bool SetModifiableFieldValue(string variableName, object value)
         {
-            FieldInfo fieldInfo = GetModifiableField(variableName);
-            
-            return SetModifiableFieldValue(fieldInfo, value);
+            ModifiableVariableData modifiableVariableData = GetModifiableField(variableName);
+
+            return SetModifiableFieldValue(modifiableVariableData, value);
         }
 
-        internal static bool SetModifiableFieldValue(FieldInfo fieldInfo, object value)
+        internal static bool SetModifiableFieldValue(ModifiableVariableData data, object value)
         {
+            if (data == null)
+            {
+                return false;
+            }
+
+            FieldInfo fieldInfo = data.FieldInfo;
             if (fieldInfo == null)
             {
                 return false;
             }
 
-            Object instance = GetInstanceOfField(fieldInfo);
+            Object instance = data.Instance;
             if (instance == null)
             {
                 return false;

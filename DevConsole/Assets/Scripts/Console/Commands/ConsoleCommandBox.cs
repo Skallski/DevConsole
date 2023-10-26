@@ -113,6 +113,12 @@ namespace Console.Commands
                     SetVariable(parts[1], parts[2]);
                     break;
                 }
+                // example: /reset [variableName]
+                case "/reset":
+                {
+                    ResetVariable(parts[1]);
+                    break;
+                }
                 // example: /get [variableName]
                 case "/get":
                 {
@@ -142,20 +148,39 @@ namespace Console.Commands
         
         private static void SetVariable(string variableName, object value)
         {
-            var fieldInfo = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
-            if (fieldInfo == null)
+            var data = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
+            if (data == null)
             {
                 Debug.LogError($"'{variableName}' is not valid variable!");
                 return;
             }
 
-            if (ConsoleModifiableVariableHandler.SetModifiableFieldValue(fieldInfo, value))
+            if (ConsoleModifiableVariableHandler.SetModifiableFieldValue(data, value))
             {
                 Debug.LogAssertion($"'{variableName}' value set: '{value}'");
             }
             else
             {
                 Debug.LogError($"'{value}' is not valid value for variable '{variableName}'!");
+            }
+        }
+        
+        private static void ResetVariable(string variableName)
+        {
+            var data = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
+            if (data == null)
+            {
+                Debug.LogError($"'{variableName}' is not valid variable!");
+                return;
+            }
+
+            if (ConsoleModifiableVariableHandler.SetModifiableFieldValue(data, data.InitialValue))
+            {
+                Debug.LogAssertion($"'{variableName}' value reset to: '{data.InitialValue}'");
+            }
+            else
+            {
+                Debug.LogError($"'{variableName}' cannot be reset!");
             }
         }
 
@@ -175,10 +200,10 @@ namespace Console.Commands
         {
             StringBuilder sb = new StringBuilder();
             
-            var fields = ConsoleModifiableVariableHandler.FindModifiableFields();
-            foreach (var field in fields)
+            var dataSets = ConsoleModifiableVariableHandler.FindModifiableFields();
+            foreach (var data in dataSets)
             {
-                sb.Append($"{ConsoleModifiableVariableHandler.GetNameOfField(field)}, ");
+                sb.Append($"{ConsoleModifiableVariableHandler.GetNameOfField(data.FieldInfo)}, ");
             }
             
             Debug.Log($"Variables: {sb.ToString()}");
