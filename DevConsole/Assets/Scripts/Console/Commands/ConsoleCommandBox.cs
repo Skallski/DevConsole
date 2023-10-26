@@ -9,7 +9,8 @@ namespace Console.Commands
     {
         [SerializeField] private TMPro.TMP_InputField _inputField;
         
-        private readonly List<string> _archivedCommands = new List<string>();
+        private readonly List<string> _cachedCommands = new List<string>();
+        private int _currentCachedCommandIndex;
 
 #if UNITY_EDITOR
         private void Reset()
@@ -25,6 +26,8 @@ namespace Console.Commands
         {
             _inputField.ActivateInputField();
             _inputField.Select();
+
+            _currentCachedCommandIndex = _cachedCommands.Count;
         }
 
         private void OnDisable()
@@ -39,29 +42,46 @@ namespace Console.Commands
                 ExecuteCommand();
             }
 
-            // TODO: up arrow scrolls to last archived command
-            // TODO: down arrow scrolls to next archived command
-            // if (Input.GetKeyDown(KeyCode.UpArrow))
-            // {
-            //     if (_archivedCommands.Count == 0)
-            //     {
-            //         return;
-            //     }
-            //     
-            //     _archivedCommands
-            // }
-            // else if (Input.GetKeyDown(KeyCode.DownArrow))
-            // {
-            //     
-            // }
+            if (_cachedCommands.Count > 0)
+            {
+                if (Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    if (_currentCachedCommandIndex > 0)
+                    {
+                        _currentCachedCommandIndex--;
+                    }
+
+                    _inputField.text = _cachedCommands[_currentCachedCommandIndex];
+                }
+                else if (Input.GetKeyDown(KeyCode.DownArrow))
+                {
+                    if (_currentCachedCommandIndex < _cachedCommands.Count)
+                    {
+                        _currentCachedCommandIndex++;
+                    }
+
+                    _inputField.text = _currentCachedCommandIndex == _cachedCommands.Count 
+                        ? string.Empty 
+                        : _cachedCommands[_currentCachedCommandIndex];
+                }
+            }
         }
 
+        [UsedImplicitly]
+        public void ClearCommandsCache()
+        {
+            _cachedCommands.Clear();
+            _currentCachedCommandIndex = _cachedCommands.Count;
+        }
 
         [UsedImplicitly]
         public void ExecuteCommand()
         {
             ExecuteCommand(_inputField.text);
-            _archivedCommands.Add(_inputField.text);
+            
+            _cachedCommands.Add(_inputField.text);
+            _currentCachedCommandIndex = _cachedCommands.Count;
+            
             _inputField.text = string.Empty;
         }
 
@@ -69,24 +89,27 @@ namespace Console.Commands
         {
             if (text.StartsWith("/") == false)
             {
-                // TODO: no such command
-                return;
+                goto NotValidCommand;
             }
             
             string[] parts = text.Split(' ');
             if (parts == null || parts.Length == 0)
             {
-                // TODO: no such command
-                return;
+                goto NotValidCommand;
             }
 
             var command = parts[0];
-            
             switch (command)
             {
                 // example: /set [variableName] [value]
                 case "/set":
                 {
+                    if (parts.Length < 3)
+                    {
+                        Debug.LogError("/set command has not enough arguments!");
+                        return;
+                    }
+                    
                     SetVariable(parts[1], parts[2]);
                     break;
                 }
@@ -102,6 +125,18 @@ namespace Console.Commands
                     GetAllVariables();
                     break;
                 }
+                default:
+                {
+                    goto NotValidCommand;
+                }
+            }
+            
+            return;
+            
+            NotValidCommand:
+            {
+                Debug.LogError("Not valid command!");
+                return;
             }
         }
         
@@ -110,17 +145,17 @@ namespace Console.Commands
             var fieldInfo = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
             if (fieldInfo == null)
             {
-                Debug.LogError($"{variableName} is not valid variable!");
+                Debug.LogError($"'{variableName}' is not valid variable!");
                 return;
             }
 
             if (ConsoleModifiableVariableHandler.SetModifiableFieldValue(fieldInfo, value))
             {
-                Debug.LogAssertion($"{variableName} value set: {value}");
+                Debug.LogAssertion($"'{variableName}' value set: '{value}'");
             }
             else
             {
-                Debug.LogError($"{value} is not valid value for {variableName}!");
+                Debug.LogError($"'{value}' is not valid value for variable '{variableName}'!");
             }
         }
 
@@ -128,11 +163,11 @@ namespace Console.Commands
         {
             if (ConsoleModifiableVariableHandler.GetModifiableFieldValue(variableName, out object value))
             {
-                Debug.Log($"{variableName} = {value}");
+                Debug.Log($"'{variableName}' = '{value}'");
             }
             else
             {
-                Debug.LogError($"{variableName} is not valid variable!");
+                Debug.LogError($"'{variableName}' is not valid variable!");
             }
         }
 
@@ -146,8 +181,7 @@ namespace Console.Commands
                 sb.Append($"{ConsoleModifiableVariableHandler.GetNameOfField(field)}, ");
             }
             
-            Debug.Log("Variables:");
-            Debug.Log(sb.ToString());
+            Debug.Log($"Variables: {sb.ToString()}");
         }
     }
 }

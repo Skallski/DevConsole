@@ -15,7 +15,9 @@ namespace Console.Commands
             
             foreach (FieldInfo fieldInfo in allFields)
             {
-                ConsoleModifiableVariableAttribute variableAttribute = fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>();
+                ConsoleModifiableVariableAttribute variableAttribute = 
+                    fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>();
+                
                 if (variableAttribute != null)
                 {
                     if (variableAttribute.VariableName.Equals(variableName))
@@ -114,7 +116,7 @@ namespace Console.Commands
                 return false;
             }
 
-            var instance = GetInstanceOfField(fieldInfo);
+            Object instance = GetInstanceOfField(fieldInfo);
             if (instance == null)
             {
                 return false;
@@ -123,19 +125,27 @@ namespace Console.Commands
             if (fieldInfo.IsLiteral == false && fieldInfo.IsInitOnly == false)
             {
                 Type fieldType = fieldInfo.FieldType;
-                if (fieldType == typeof(int))
+                
+                try
                 {
-                    fieldInfo.SetValue(instance, Convert.ToInt32(value));
+                    if (fieldType == typeof(int))
+                    {
+                        fieldInfo.SetValue(instance, Convert.ToInt32(value));
+                    }
+                    else if (fieldType == typeof(float))
+                    {
+                        fieldInfo.SetValue(instance, Convert.ToSingle(value));
+                    }
+                    else if (fieldType == typeof(string))
+                    {
+                        fieldInfo.SetValue(instance, Convert.ToString(value));
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
-                else if (fieldType == typeof(float))
-                {
-                    fieldInfo.SetValue(instance, Convert.ToSingle(value));
-                }
-                else if (fieldType == typeof(string))
-                {
-                    fieldInfo.SetValue(instance, Convert.ToString(value));
-                }
-                else
+                catch (FormatException e)
                 {
                     return false;
                 }

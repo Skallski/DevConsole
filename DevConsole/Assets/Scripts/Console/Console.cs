@@ -29,7 +29,9 @@ namespace Console
         {
             if (IsOpened == false)
             {
-                if (Input.GetKeyDown(KeyCode.A))
+                if (Input.GetKeyDown(KeyCode.Tilde) || 
+                    Input.GetKeyDown(KeyCode.Slash) || 
+                    Input.GetKeyDown(KeyCode.Backslash))
                 {
                     Open();
                 }
