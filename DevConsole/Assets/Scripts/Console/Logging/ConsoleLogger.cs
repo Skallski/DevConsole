@@ -36,7 +36,7 @@ namespace Console.Logging
             
             _logs.Add(logInstance);
         }
-
+        
         private void OnFilterToggled(LogType logType, bool isOn)
         {
             var logs = _logs.Where(log => log.LogType == logType).ToList();
@@ -57,7 +57,8 @@ namespace Console.Logging
             _logs.Clear();
             _consoleLogs.Clear();
         }
-        
+
+#if UNITY_EDITOR
         [UsedImplicitly]
         [ContextMenu(nameof(TestLog))]
         public void TestLog()
@@ -78,5 +79,6 @@ namespace Console.Logging
         {
             Debug.LogError("test");
         }
+#endif
     }
 }

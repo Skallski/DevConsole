@@ -26,9 +26,14 @@ namespace Console.Commands
         private static readonly List<ModifiableVariableData> CachedModifiableVariableDataSet =
             new List<ModifiableVariableData>();
         
-        internal static ModifiableVariableData GetModifiableField(string variableName)
+        /// <summary>
+        /// Gets data of modifiable variable with certain name
+        /// </summary>
+        /// <param name="variableName"> modifiable variable name (the name inside attribute) </param>
+        /// <returns></returns>
+        internal static ModifiableVariableData GetModifiableVariable(string variableName)
         {
-            List<ModifiableVariableData> allFields = FindModifiableFields();
+            List<ModifiableVariableData> allFields = FindAllModifiableVariables();
             
             foreach (ModifiableVariableData data in allFields)
             {
@@ -49,7 +54,11 @@ namespace Console.Commands
             return null;
         }
 
-        internal static List<ModifiableVariableData> FindModifiableFields()
+        /// <summary>
+        /// Gets all data of each modifiable variable
+        /// </summary>
+        /// <returns></returns>
+        internal static List<ModifiableVariableData> FindAllModifiableVariables()
         {
             if (CachedModifiableVariableDataSet.Count == 0)
             {
@@ -89,7 +98,7 @@ namespace Console.Commands
                 return null;
             }
             
-            if (typeof(ScriptableObject).IsAssignableFrom(declaringType))
+            if (typeof(ScriptableObject).IsAssignableFrom(declaringType)) // for variable stored inside ScriptableObject
             {
                 CreateAssetMenuAttribute createAssetMenu = declaringType.GetCustomAttribute<CreateAssetMenuAttribute>();
                 if (createAssetMenu != null)
@@ -97,7 +106,7 @@ namespace Console.Commands
                     return Resources.Load(createAssetMenu.menuName);
                 }
             }
-            else if (typeof(MonoBehaviour).IsAssignableFrom(declaringType))
+            else if (typeof(MonoBehaviour).IsAssignableFrom(declaringType)) // for variable stored inside MonoBehaviour
             {
                 return Object.FindObjectOfType(declaringType);
             }
@@ -110,13 +119,25 @@ namespace Console.Commands
             return fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>().VariableName;
         }
 
-        internal static bool GetModifiableFieldValue(string variableName, out object value)
+        /// <summary>
+        /// Gets value of modifiable variable
+        /// </summary>
+        /// <param name="variableName"> modifiable variable name (the name inside attribute) </param>
+        /// <param name="value"> value to return </param>
+        /// <returns> true or false, whether the value has ben get successfully or not </returns>
+        internal static bool GetModifiableVariableValue(string variableName, out object value)
         {
-            ModifiableVariableData modifiableVariableData = GetModifiableField(variableName);
-            return GetModifiableFieldValue(modifiableVariableData, out value);
+            ModifiableVariableData modifiableVariableData = GetModifiableVariable(variableName);
+            return GetModifiableVariableValue(modifiableVariableData, out value);
         }
 
-        internal static bool GetModifiableFieldValue(ModifiableVariableData data, out object value)
+        /// <summary>
+        /// Gets value of modifiable variable
+        /// </summary>
+        /// <param name="data"> modifiable variable data </param>
+        /// <param name="value"> value to return </param>
+        /// <returns> true or false, whether the value has ben get successfully or not </returns>
+        internal static bool GetModifiableVariableValue(ModifiableVariableData data, out object value)
         {
             value = null;
 
@@ -142,14 +163,26 @@ namespace Console.Commands
             return true;
         }
 
-        internal static bool SetModifiableFieldValue(string variableName, object value)
+        /// <summary>
+        /// Sets value of modifiable variable
+        /// </summary>
+        /// <param name="variableName"> modifiable variable name (the name inside attribute) </param>
+        /// <param name="value"> value to set </param>
+        /// <returns> true or false, whether the value has ben set successfully or not </returns>
+        internal static bool SetModifiableVariableValue(string variableName, object value)
         {
-            ModifiableVariableData modifiableVariableData = GetModifiableField(variableName);
+            ModifiableVariableData modifiableVariableData = GetModifiableVariable(variableName);
 
-            return SetModifiableFieldValue(modifiableVariableData, value);
+            return SetModifiableVariableValue(modifiableVariableData, value);
         }
 
-        internal static bool SetModifiableFieldValue(ModifiableVariableData data, object value)
+        /// <summary>
+        /// Sets value of modifiable variable
+        /// </summary>
+        /// <param name="data"> modifiable variable data </param>
+        /// <param name="value"> value to set </param>
+        /// <returns> true or false, whether the value has ben set successfully or not </returns>
+        internal static bool SetModifiableVariableValue(ModifiableVariableData data, object value)
         {
             if (data == null)
             {

@@ -148,14 +148,14 @@ namespace Console.Commands
         
         private static void SetVariable(string variableName, object value)
         {
-            var data = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
+            var data = ConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
             if (data == null)
             {
                 Debug.LogError($"'{variableName}' is not valid variable!");
                 return;
             }
 
-            if (ConsoleModifiableVariableHandler.SetModifiableFieldValue(data, value))
+            if (ConsoleModifiableVariableHandler.SetModifiableVariableValue(data, value))
             {
                 Debug.LogAssertion($"'{variableName}' value set: '{value}'");
             }
@@ -167,14 +167,14 @@ namespace Console.Commands
         
         private static void ResetVariable(string variableName)
         {
-            var data = ConsoleModifiableVariableHandler.GetModifiableField(variableName);
+            var data = ConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
             if (data == null)
             {
                 Debug.LogError($"'{variableName}' is not valid variable!");
                 return;
             }
 
-            if (ConsoleModifiableVariableHandler.SetModifiableFieldValue(data, data.InitialValue))
+            if (ConsoleModifiableVariableHandler.SetModifiableVariableValue(data, data.InitialValue))
             {
                 Debug.LogAssertion($"'{variableName}' value reset to: '{data.InitialValue}'");
             }
@@ -186,7 +186,7 @@ namespace Console.Commands
 
         private static void GetVariable(string variableName)
         {
-            if (ConsoleModifiableVariableHandler.GetModifiableFieldValue(variableName, out object value))
+            if (ConsoleModifiableVariableHandler.GetModifiableVariableValue(variableName, out object value))
             {
                 Debug.Log($"'{variableName}' = '{value}'");
             }
@@ -200,7 +200,7 @@ namespace Console.Commands
         {
             StringBuilder sb = new StringBuilder();
             
-            var dataSets = ConsoleModifiableVariableHandler.FindModifiableFields();
+            var dataSets = ConsoleModifiableVariableHandler.FindAllModifiableVariables();
             foreach (var data in dataSets)
             {
                 sb.Append($"{ConsoleModifiableVariableHandler.GetNameOfField(data.FieldInfo)}, ");
