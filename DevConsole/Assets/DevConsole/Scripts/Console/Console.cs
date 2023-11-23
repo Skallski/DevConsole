@@ -4,6 +4,7 @@ namespace Console
 {
     public class Console : MonoBehaviour
     {
+        [SerializeField] private KeyCode _consoleOpenKeycode = KeyCode.Tilde;
         [SerializeField] private GameObject _content;
         
         public bool IsOpened => _content.activeSelf;
@@ -25,16 +26,16 @@ namespace Console
             }
         }
 #endif
-        public void Update()
+        private void Update()
         {
-            if (IsOpened == false)
+            if (IsOpened)
             {
-                if (Input.GetKeyDown(KeyCode.Tilde) || 
-                    Input.GetKeyDown(KeyCode.Slash) || 
-                    Input.GetKeyDown(KeyCode.Backslash))
-                {
-                    Open();
-                }
+                return;
+            }
+
+            if (Input.GetKeyDown(_consoleOpenKeycode))
+            {
+                Open();
             }
         }
         
