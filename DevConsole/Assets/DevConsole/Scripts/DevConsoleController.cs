@@ -1,13 +1,13 @@
 using UnityEngine;
 
-namespace Console
+namespace DevConsole
 {
-    public class Console : MonoBehaviour
+    public class DevConsoleController : MonoBehaviour
     {
         [SerializeField] private KeyCode _consoleOpenKeycode = KeyCode.Tilde;
         [SerializeField] private GameObject _content;
         
-        public bool IsOpened => _content.activeSelf;
+        internal bool IsOpened => _content.activeSelf;
         
 #if UNITY_EDITOR
         private void Reset()

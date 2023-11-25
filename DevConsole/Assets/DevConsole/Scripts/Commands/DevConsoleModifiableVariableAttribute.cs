@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Console.Commands
+namespace DevConsole.Commands
 {
     /// <summary>
     /// Attribute that allows variables to be visible and modifiable inside Dev Console
@@ -10,11 +10,11 @@ namespace Console.Commands
     /// </example>>
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public class ConsoleModifiableVariableAttribute : PropertyAttribute
+    public class DevConsoleModifiableVariableAttribute : PropertyAttribute
     {
         public readonly string VariableName;
 
-        public ConsoleModifiableVariableAttribute(string variableName)
+        public DevConsoleModifiableVariableAttribute(string variableName)
         {
             VariableName = variableName;
         }

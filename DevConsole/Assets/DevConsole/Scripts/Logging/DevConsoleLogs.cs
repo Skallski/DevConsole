@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace Console.Logging
+namespace DevConsole.Logging
 {
-    public class ConsoleLogs : MonoBehaviour
+    public class DevConsoleLogs : MonoBehaviour
     {
         [SerializeField] private RectTransform _stackTraceTransform;
         [SerializeField] private float _basePositionY = -30;
@@ -11,15 +11,15 @@ namespace Console.Logging
 
         private void OnEnable()
         {
-            ConsoleLogObject.OnConsoleLogSelected += PrintStackTrace;
+            DevConsoleLogObject.OnConsoleLogSelected += PrintStackTrace;
         }
 
         private void OnDisable()
         {
-            ConsoleLogObject.OnConsoleLogSelected -= PrintStackTrace;
+            DevConsoleLogObject.OnConsoleLogSelected -= PrintStackTrace;
         }
 
-        private void PrintStackTrace(ConsoleLogObject consoleLogObject)
+        private void PrintStackTrace(DevConsoleLogObject consoleLogObject)
         {
             if (consoleLogObject.Selected)
             {

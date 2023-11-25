@@ -5,9 +5,9 @@ using System.Reflection;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Console.Commands
+namespace DevConsole.Commands
 {
-    public static class ConsoleModifiableVariableHandler
+    public static class DevConsoleModifiableVariableHandler
     {
         internal class ModifiableVariableData
         {
@@ -39,8 +39,8 @@ namespace Console.Commands
             {
                 FieldInfo fieldInfo = data.FieldInfo;
                 
-                ConsoleModifiableVariableAttribute variableAttribute = 
-                    fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>();
+                DevConsoleModifiableVariableAttribute variableAttribute = 
+                    fieldInfo.GetCustomAttribute<DevConsoleModifiableVariableAttribute>();
                 
                 if (variableAttribute != null)
                 {
@@ -74,7 +74,7 @@ namespace Console.Commands
                         {
                             var typeFields = 
                                 type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                                .Where(field => field.IsDefined(typeof(ConsoleModifiableVariableAttribute), true));
+                                .Where(field => field.IsDefined(typeof(DevConsoleModifiableVariableAttribute), true));
 
                             foreach (var field in typeFields)
                             {
@@ -116,7 +116,7 @@ namespace Console.Commands
 
         internal static string GetNameOfField(FieldInfo fieldInfo)
         {
-            return fieldInfo.GetCustomAttribute<ConsoleModifiableVariableAttribute>().VariableName;
+            return fieldInfo.GetCustomAttribute<DevConsoleModifiableVariableAttribute>().VariableName;
         }
 
         /// <summary>

@@ -2,11 +2,11 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Console.Logging
+namespace DevConsole.Logging
 {
-    public class ConsoleLogObject : MonoBehaviour, IPointerUpHandler
+    public class DevConsoleLogObject : MonoBehaviour, IPointerUpHandler
     {
-        internal static event Action<ConsoleLogObject> OnConsoleLogSelected;
+        internal static event Action<DevConsoleLogObject> OnConsoleLogSelected;
         private static readonly Color SelectedBackgroundColor = new Color32(255, 255, 255, 42);
         private static readonly Color DeselectedBackgroundColor = new Color32(255, 255, 255, 0);
 
@@ -56,7 +56,7 @@ namespace Console.Logging
             OnConsoleLogSelected?.Invoke(this);
         }
 
-        private void OnConsoleLogSelectedCallback(ConsoleLogObject _consoleLogObject)
+        private void OnConsoleLogSelectedCallback(DevConsoleLogObject _consoleLogObject)
         {
             if (_consoleLogObject != this)
             {

@@ -3,9 +3,9 @@ using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Console.Commands
+namespace DevConsole.Commands
 {
-    public class ConsoleCommandBox : MonoBehaviour
+    public class DevConsoleCommandBox : MonoBehaviour
     {
         [SerializeField] private TMPro.TMP_InputField _inputField;
         
@@ -148,14 +148,14 @@ namespace Console.Commands
         
         private static void SetVariable(string variableName, object value)
         {
-            var data = ConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
+            var data = DevConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
             if (data == null)
             {
                 Debug.LogError($"'{variableName}' is not valid variable!");
                 return;
             }
 
-            if (ConsoleModifiableVariableHandler.SetModifiableVariableValue(data, value))
+            if (DevConsoleModifiableVariableHandler.SetModifiableVariableValue(data, value))
             {
                 Debug.LogAssertion($"'{variableName}' value set: '{value}'");
             }
@@ -167,14 +167,14 @@ namespace Console.Commands
         
         private static void ResetVariable(string variableName)
         {
-            var data = ConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
+            var data = DevConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
             if (data == null)
             {
                 Debug.LogError($"'{variableName}' is not valid variable!");
                 return;
             }
 
-            if (ConsoleModifiableVariableHandler.SetModifiableVariableValue(data, data.InitialValue))
+            if (DevConsoleModifiableVariableHandler.SetModifiableVariableValue(data, data.InitialValue))
             {
                 Debug.LogAssertion($"'{variableName}' value reset to: '{data.InitialValue}'");
             }
@@ -186,7 +186,7 @@ namespace Console.Commands
 
         private static void GetVariable(string variableName)
         {
-            if (ConsoleModifiableVariableHandler.GetModifiableVariableValue(variableName, out object value))
+            if (DevConsoleModifiableVariableHandler.GetModifiableVariableValue(variableName, out object value))
             {
                 Debug.Log($"'{variableName}' = '{value}'");
             }
@@ -200,10 +200,10 @@ namespace Console.Commands
         {
             StringBuilder sb = new StringBuilder();
             
-            var dataSets = ConsoleModifiableVariableHandler.FindAllModifiableVariables();
+            var dataSets = DevConsoleModifiableVariableHandler.FindAllModifiableVariables();
             foreach (var data in dataSets)
             {
-                sb.Append($"{ConsoleModifiableVariableHandler.GetNameOfField(data.FieldInfo)}, ");
+                sb.Append($"{DevConsoleModifiableVariableHandler.GetNameOfField(data.FieldInfo)}, ");
             }
             
             Debug.Log($"Variables: {sb.ToString()}");

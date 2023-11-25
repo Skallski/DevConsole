@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Console.Logging
+namespace DevConsole.Logging
 {
-    public class ConsoleLogFilter : MonoBehaviour
+    public class DevConsoleLogFilter : MonoBehaviour
     {
         internal static event System.Action<LogType, bool> FilterToggled;
         
