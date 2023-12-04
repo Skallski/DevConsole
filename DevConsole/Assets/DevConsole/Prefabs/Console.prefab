@@ -1241,7 +1241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1602137cc66454ce9b3337124cdade7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _consoleOpenKeycode: 126
+  _consoleOpenKeycode: 92
   _content: {fileID: 1471026347343854259}
   _onOpen:
     m_PersistentCalls:
@@ -3881,7 +3881,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Dev Console v1.3.6 beta
+  m_text: Dev Console v1.3.7 beta
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

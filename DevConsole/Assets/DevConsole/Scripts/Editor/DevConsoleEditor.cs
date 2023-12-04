@@ -31,6 +31,9 @@ namespace DevConsole.Editor
                 return;
             }
             
+            serializedObject.Update();
+            EditorGUILayout.BeginVertical();
+            
             EditorGUILayout.PropertyField(_consoleOpenKeycode);
             EditorGUILayout.PropertyField(_content);
             
@@ -38,42 +41,43 @@ namespace DevConsole.Editor
             EditorGUILayout.PropertyField(_onOpen);
             EditorGUILayout.PropertyField(_onClose);
 
-            if (Application.isPlaying == false)
+            if (Application.isPlaying)
             {
-                return;
-            }
+                EditorGUILayout.Space();
+                EditorGUI.DrawRect(
+                    EditorGUILayout.GetControlRect(false, 1), new Color(0f, 0f, 0f, 0.3f));
+                EditorGUILayout.Space();
 
-            EditorGUILayout.Space();
-            EditorGUI.DrawRect(
-                EditorGUILayout.GetControlRect(false, 1), new Color(0f, 0f, 0f, 0.3f));
-            EditorGUILayout.Space();
-
-            PropertyInfo isOpenedPropertyInfo = _devConsoleController.GetType()
-                .GetProperty("IsOpened", BindingFlags.NonPublic | BindingFlags.Instance);
+                PropertyInfo isOpenedPropertyInfo = _devConsoleController.GetType()
+                    .GetProperty("IsOpened", BindingFlags.NonPublic | BindingFlags.Instance);
             
-            if (isOpenedPropertyInfo == null)
-            {
-                return;
-            }
-            
-            if ((bool) isOpenedPropertyInfo.GetValue(_devConsoleController))
-            {
-                if (GUILayout.Button("Close"))
+                if (isOpenedPropertyInfo == null)
                 {
-                    _devConsoleController.GetType()
-                        .GetMethod("ForceClose", BindingFlags.NonPublic | BindingFlags.Instance)
-                        ?.Invoke(_devConsoleController, default);
+                    return;
+                }
+            
+                if ((bool) isOpenedPropertyInfo.GetValue(_devConsoleController))
+                {
+                    if (GUILayout.Button("Close"))
+                    {
+                        _devConsoleController.GetType()
+                            .GetMethod("ForceClose", BindingFlags.NonPublic | BindingFlags.Instance)
+                            ?.Invoke(_devConsoleController, default);
+                    }
+                }
+                else
+                {
+                    if (GUILayout.Button("Open"))
+                    {
+                        _devConsoleController.GetType()
+                            .GetMethod("ForceOpen", BindingFlags.NonPublic | BindingFlags.Instance)
+                            ?.Invoke(_devConsoleController, default);
+                    }
                 }
             }
-            else
-            {
-                if (GUILayout.Button("Open"))
-                {
-                    _devConsoleController.GetType()
-                        .GetMethod("ForceOpen", BindingFlags.NonPublic | BindingFlags.Instance)
-                        ?.Invoke(_devConsoleController, default);
-                }
-            }
+
+            EditorGUILayout.EndVertical();
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
