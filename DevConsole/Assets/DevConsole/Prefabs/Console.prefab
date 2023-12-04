@@ -1243,6 +1243,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _consoleOpenKeycode: 126
   _content: {fileID: 1471026347343854259}
+  _onOpen:
+    m_PersistentCalls:
+      m_Calls: []
+  _onClose:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1471026346682237658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1258,6 +1264,7 @@ MonoBehaviour:
   _consoleLogs: {fileID: 1471026346265850203}
   _logObjectTemplate: {fileID: 1471026346394097076}
   _logsStorage: {fileID: 1471026346874890157}
+  _maxLogAmount: 25
 --- !u!1 &1471026346772946949
 GameObject:
   m_ObjectHideFlags: 0
@@ -3874,7 +3881,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Dev Console v1.3.5 beta
+  m_text: Dev Console v1.3.6 beta
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

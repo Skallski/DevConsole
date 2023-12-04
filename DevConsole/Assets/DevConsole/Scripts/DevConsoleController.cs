@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace DevConsole
 {
@@ -6,6 +7,9 @@ namespace DevConsole
     {
         [SerializeField] private KeyCode _consoleOpenKeycode = KeyCode.Tilde;
         [SerializeField] private GameObject _content;
+
+        [SerializeField] private UnityEvent _onOpen;
+        [SerializeField] private UnityEvent _onClose;
         
         internal bool IsOpened => _content.activeSelf;
         
@@ -64,11 +68,15 @@ namespace DevConsole
         private void ForceOpen()
         {
             _content.SetActive(true);
+            
+            _onOpen?.Invoke();
         }
 
         private void ForceClose()
         {
             _content.SetActive(false);
+            
+            _onClose?.Invoke();
         }
     }
 }

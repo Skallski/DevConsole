@@ -9,9 +9,19 @@ namespace DevConsole.Editor
     {
         private DevConsoleController _devConsoleController;
 
+        private SerializedProperty _consoleOpenKeycode;
+        private SerializedProperty _content;
+        private SerializedProperty _onOpen;
+        private SerializedProperty _onClose;
+        
         private void OnEnable()
         {
             _devConsoleController = target as DevConsoleController;
+
+            _consoleOpenKeycode = serializedObject.FindProperty("_consoleOpenKeycode");
+            _content = serializedObject.FindProperty("_content");
+            _onOpen = serializedObject.FindProperty("_onOpen");
+            _onClose = serializedObject.FindProperty("_onClose");
         }
 
         public override void OnInspectorGUI()
@@ -20,8 +30,13 @@ namespace DevConsole.Editor
             {
                 return;
             }
-
-            base.OnInspectorGUI();
+            
+            EditorGUILayout.PropertyField(_consoleOpenKeycode);
+            EditorGUILayout.PropertyField(_content);
+            
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(_onOpen);
+            EditorGUILayout.PropertyField(_onClose);
 
             if (Application.isPlaying == false)
             {
