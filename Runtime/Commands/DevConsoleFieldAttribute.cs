@@ -6,15 +6,15 @@ namespace DevConsole.Commands
     /// <summary>
     /// Attribute that allows variables to be visible and modifiable inside Dev Console
     /// <example>
-    /// [ConsoleModifiableVariable("consoleVariableName")] private int _someVariable;
+    /// [DevConsoleField("consoleVariableName")] private int _someVariable;
     /// </example>>
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public class DevConsoleModifiableVariableAttribute : PropertyAttribute
+    public class DevConsoleFieldAttribute : PropertyAttribute
     {
         public readonly string VariableName;
 
-        public DevConsoleModifiableVariableAttribute(string variableName)
+        public DevConsoleFieldAttribute(string variableName)
         {
             VariableName = variableName;
         }
