@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
@@ -11,6 +12,16 @@ namespace DevConsole.Commands
         
         private readonly List<string> _cachedCommands = new List<string>();
         private int _currentCachedCommandIndex;
+        
+        protected enum CommandResult
+        {
+            None,
+            Ok,
+            NotEnoughArguments,
+            NotValidCommand,
+            NotValidArgument,
+            NotValidVariable,
+        }
 
 #if UNITY_EDITOR
         private void Reset()
@@ -39,7 +50,7 @@ namespace DevConsole.Commands
         {
             if (Input.GetKeyDown(KeyCode.Return))
             {
-                ExecuteCommand();
+                Execute();
             }
 
             if (_cachedCommands.Count > 0)
@@ -75,54 +86,60 @@ namespace DevConsole.Commands
         }
 
         [UsedImplicitly]
-        public void ExecuteCommand()
+        public void Execute()
         {
-            ExecuteCommand(_inputField.text);
+            Execute(_inputField.text);
             
             _cachedCommands.Add(_inputField.text);
             _currentCachedCommandIndex = _cachedCommands.Count;
             
             _inputField.text = string.Empty;
         }
-
-        private static void ExecuteCommand(string text)
+        
+        private void Execute(string text)
         {
             if (text.StartsWith("/") == false)
             {
-                goto NotValidCommand;
+                PrintCommandResult(CommandResult.NotValidCommand);
+                return;
             }
             
             string[] parts = text.Split(' ');
             if (parts == null || parts.Length == 0)
             {
-                goto NotValidCommand;
+                PrintCommandResult(CommandResult.NotValidCommand);
+                return;
             }
 
-            var command = parts[0];
+            HandleCommand(parts);
+        }
+
+        private void HandleCommand(IReadOnlyList<string> commandTextParts)
+        {
+            string command = commandTextParts[0];
             switch (command)
             {
                 // example: /set [variableName] [value]
                 case "/set":
                 {
-                    if (parts.Length < 3)
+                    if (commandTextParts.Count < 3)
                     {
-                        Debug.LogError("/set command has not enough arguments!");
-                        return;
+                        PrintCommandResult(CommandResult.NotEnoughArguments, command);
                     }
                     
-                    SetVariable(parts[1], parts[2]);
+                    SetVariable(commandTextParts[1], commandTextParts[2]);
                     break;
                 }
                 // example: /reset [variableName]
                 case "/reset":
                 {
-                    ResetVariable(parts[1]);
+                    ResetVariable(commandTextParts[1]);
                     break;
                 }
                 // example: /get [variableName]
                 case "/get":
                 {
-                    GetVariable(parts[1]);
+                    GetVariable(commandTextParts[1]);
                     break;
                 }
                 // example: /getAll
@@ -133,50 +150,73 @@ namespace DevConsole.Commands
                 }
                 default:
                 {
-                    goto NotValidCommand;
+                    PrintCommandResult(CommandResult.NotValidCommand, command);
+                    break;
                 }
             }
             
-            return;
-            
-            NotValidCommand:
+            HandleCommandInternal(commandTextParts);
+        }
+
+        protected virtual void HandleCommandInternal(IReadOnlyList<string> commandTextParts) {}
+
+        protected static void PrintCommandResult(CommandResult result, params object[] parameters)
+        {
+            switch (result)
             {
-                Debug.LogError("Not valid command!");
-                return;
+                case CommandResult.None:
+                    break;
+                case CommandResult.Ok:
+                    Debug.Log($"Ok: {parameters[0]}");
+                    break;
+                case CommandResult.NotEnoughArguments:
+                    Debug.LogError($"Command: {parameters[0]} has not enough arguments!");
+                    break;
+                case CommandResult.NotValidCommand:
+                    Debug.LogError($"Command: {parameters[0]} is not valid!");
+                    break;
+                case CommandResult.NotValidArgument:
+                    Debug.LogError($"Command: {parameters[0]}, argument {parameters[1]} is not valid!");
+                    break;
+                case CommandResult.NotValidVariable:
+                    Debug.LogError($"Command: {parameters[0]}, variable: {parameters[1]} is not valid!");
+                    break;
             }
         }
-        
+
         private static void SetVariable(string variableName, object value)
         {
-            var data = DevConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
+            DevConsoleModifiableVariableHandler.ModifiableVariableData data = 
+                DevConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
             if (data == null)
             {
-                Debug.LogError($"'{variableName}' is not valid variable!");
+                PrintCommandResult(CommandResult.NotValidVariable, $"/set {variableName}", variableName);
                 return;
             }
 
             if (DevConsoleModifiableVariableHandler.SetModifiableVariableValue(data, value))
             {
-                Debug.LogAssertion($"'{variableName}' value set: '{value}'");
+                PrintCommandResult(CommandResult.Ok, $"'{variableName}' value set to '{value}'");
             }
             else
             {
-                Debug.LogError($"'{value}' is not valid value for variable '{variableName}'!");
+                PrintCommandResult(CommandResult.NotValidArgument, $"/set {variableName}", value);
             }
         }
         
         private static void ResetVariable(string variableName)
         {
-            var data = DevConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
+            DevConsoleModifiableVariableHandler.ModifiableVariableData data = 
+                DevConsoleModifiableVariableHandler.GetModifiableVariable(variableName);
             if (data == null)
             {
-                Debug.LogError($"'{variableName}' is not valid variable!");
+                PrintCommandResult(CommandResult.NotValidVariable, $"/reset {variableName}", variableName);
                 return;
             }
 
             if (DevConsoleModifiableVariableHandler.SetModifiableVariableValue(data, data.InitialValue))
             {
-                Debug.LogAssertion($"'{variableName}' value reset to: '{data.InitialValue}'");
+                PrintCommandResult(CommandResult.Ok, $"'{variableName}' value reset to '{data.InitialValue}'");
             }
             else
             {
@@ -188,11 +228,11 @@ namespace DevConsole.Commands
         {
             if (DevConsoleModifiableVariableHandler.GetModifiableVariableValue(variableName, out object value))
             {
-                Debug.Log($"'{variableName}' = '{value}'");
+                PrintCommandResult(CommandResult.Ok, $"'{variableName}' = '{value}'");
             }
             else
             {
-                Debug.LogError($"'{variableName}' is not valid variable!");
+                PrintCommandResult(CommandResult.NotValidVariable, $"/get {variableName}", variableName);
             }
         }
 
@@ -200,13 +240,14 @@ namespace DevConsole.Commands
         {
             StringBuilder sb = new StringBuilder();
             
-            var dataSets = DevConsoleModifiableVariableHandler.FindAllModifiableVariables();
+            List<DevConsoleModifiableVariableHandler.ModifiableVariableData> dataSets = 
+                DevConsoleModifiableVariableHandler.FindAllModifiableVariables();
             foreach (var data in dataSets)
             {
                 sb.Append($"{DevConsoleModifiableVariableHandler.GetNameOfField(data.FieldInfo)}, ");
             }
             
-            Debug.Log($"Variables: {sb.ToString()}");
+            PrintCommandResult(CommandResult.Ok, $"Variables: {sb}");
         }
     }
 }
