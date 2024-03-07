@@ -1,6 +1,6 @@
 {
   "name": "com.skallu.dev-console",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "displayName": "Skallu Dev Console",
   "description": "Lightweight UI based developer console.",
   "unity": "2021.3",
