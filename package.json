@@ -1,6 +1,6 @@
 {
   "name": "com.skallu.dev-console",
-  "version": "1.3.9",
+  "version": "1.4.0",
   "displayName": "Skallu Dev Console",
   "description": "UI based developer console that can work inside build.",
   "unity": "2021.3",

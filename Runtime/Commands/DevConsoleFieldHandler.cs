@@ -14,7 +14,7 @@ namespace DevConsole.Commands
         {
             public readonly FieldInfo FieldInfo;
             public readonly Object Instance;
-            public readonly object InitialValue;
+            // public readonly object InitialValue;
             public readonly string VariableName;
             public readonly Type FieldType;
 
@@ -25,13 +25,13 @@ namespace DevConsole.Commands
 
                 if (fieldInfo != null)
                 {
-                    InitialValue = fieldInfo.GetValue(instance);
+                    // InitialValue = fieldInfo.GetValue(instance);
                     VariableName = fieldInfo.GetCustomAttribute<DevConsoleFieldAttribute>().VariableName;
                     FieldType = fieldInfo.FieldType;
                 }
                 else
                 {
-                    InitialValue = null;
+                    // InitialValue = null;
                     VariableName = string.Empty;
                     FieldType = null;
                 }
@@ -95,19 +95,19 @@ namespace DevConsole.Commands
                     return null;
                 }
             
-                if (typeof(ScriptableObject).IsAssignableFrom(declaringType)) // for variable stored inside ScriptableObject
-                {
-                    CreateAssetMenuAttribute createAssetMenu = declaringType.GetCustomAttribute<CreateAssetMenuAttribute>();
-                    if (createAssetMenu != null)
-                    {
-                        return Resources.Load(createAssetMenu.menuName);
-                    }
-                }
-                else if (typeof(MonoBehaviour).IsAssignableFrom(declaringType)) // for variable stored inside MonoBehaviour
+                if (typeof(MonoBehaviour).IsAssignableFrom(declaringType)) // for variable stored inside MonoBehaviour
                 {
                     return Object.FindObjectOfType(declaringType);
                 }
-
+                // else if (typeof(ScriptableObject).IsAssignableFrom(declaringType)) // for variable stored inside ScriptableObject
+                // {
+                //     CreateAssetMenuAttribute createAssetMenu = declaringType.GetCustomAttribute<CreateAssetMenuAttribute>();
+                //     if (createAssetMenu != null)
+                //     {
+                //         return Resources.Load(createAssetMenu.menuName);
+                //     }
+                // }
+                
                 return null;
             }
         }
@@ -208,26 +208,26 @@ namespace DevConsole.Commands
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="variableName"></param>
-        /// <param name="initialValue"></param>
-        /// <returns></returns>
-        internal static bool ResetValue(string variableName, out object initialValue)
-        {
-            initialValue = null;
-            
-            DevConsoleFieldData devConsoleFieldData = GetDevConsoleVariable(variableName);
-            if (IsValid(devConsoleFieldData) == false)
-            {
-                return false;
-            }
-            
-            initialValue = devConsoleFieldData.InitialValue;
-
-            return SetValue(variableName, initialValue);
-        }
+        // /// <summary>
+        // /// Resets field to it's initial value
+        // /// </summary>
+        // /// <param name="variableName"> name of seeking dev console field </param>
+        // /// <param name="initialValue"> expected initial value </param>
+        // /// <returns> true or false, whether value has been successfully reset or not</returns>
+        // internal static bool ResetValue(string variableName, out object initialValue)
+        // {
+        //     initialValue = null;
+        //     
+        //     DevConsoleFieldData devConsoleFieldData = GetDevConsoleVariable(variableName);
+        //     if (IsValid(devConsoleFieldData) == false)
+        //     {
+        //         return false;
+        //     }
+        //     
+        //     initialValue = devConsoleFieldData.InitialValue;
+        //
+        //     return SetValue(variableName, initialValue);
+        // }
 
         /// <summary>
         /// Gets all names of modifiable variables

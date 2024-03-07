@@ -4,14 +4,15 @@ using UnityEngine;
 
 namespace DevConsole.Commands
 {
-    public class DevConsoleCommandBox : MonoBehaviour
+    public class DevConsoleCommandPrompt : MonoBehaviour
     {
         [SerializeField] private TMPro.TMP_InputField _inputField;
-        
+
+        [SerializeField] private bool _allowCachingCommands = true;
         private readonly List<string> _cachedCommands = new List<string>();
         private int _currentCachedCommandIndex;
         
-        protected enum CommandResult
+        protected enum DevCommandResult
         {
             None,
             Ok,
@@ -50,37 +51,44 @@ namespace DevConsole.Commands
             {
                 Execute();
             }
-
-            if (_cachedCommands.Count > 0)
+            
+            if (_allowCachingCommands == false || _cachedCommands.Count <= 0)
             {
-                if (Input.GetKeyDown(KeyCode.UpArrow))
-                {
-                    if (_currentCachedCommandIndex > 0)
-                    {
-                        _currentCachedCommandIndex--;
-                    }
+                return;
+            }
 
-                    _inputField.text = _cachedCommands[_currentCachedCommandIndex];
-                }
-                else if (Input.GetKeyDown(KeyCode.DownArrow))
+            if (Input.GetKeyDown(KeyCode.UpArrow)) // move to previous executed command
+            {
+                if (_currentCachedCommandIndex > 0)
                 {
-                    if (_currentCachedCommandIndex < _cachedCommands.Count)
-                    {
-                        _currentCachedCommandIndex++;
-                    }
-
-                    _inputField.text = _currentCachedCommandIndex == _cachedCommands.Count 
-                        ? string.Empty 
-                        : _cachedCommands[_currentCachedCommandIndex];
+                    _currentCachedCommandIndex--;
                 }
+
+                _inputField.text = _cachedCommands[_currentCachedCommandIndex];
+            }
+            else if (Input.GetKeyDown(KeyCode.DownArrow)) // move to next executed command if there is any
+            {
+                if (_currentCachedCommandIndex < _cachedCommands.Count)
+                {
+                    _currentCachedCommandIndex++;
+                }
+
+                _inputField.text = _currentCachedCommandIndex == _cachedCommands.Count 
+                    ? string.Empty 
+                    : _cachedCommands[_currentCachedCommandIndex];
             }
         }
 
         [UsedImplicitly]
         public void ClearCommandsCache()
         {
-            _cachedCommands.Clear();
-            _currentCachedCommandIndex = _cachedCommands.Count;
+            if (_cachedCommands.Count > 0)
+            {
+                _cachedCommands.Clear();
+                _currentCachedCommandIndex = _cachedCommands.Count;
+                
+                Debug.Log("Cleared cached commands");
+            }
         }
 
         [UsedImplicitly]
@@ -98,14 +106,14 @@ namespace DevConsole.Commands
             
             if (text.StartsWith("/") == false)
             {
-                PrintCommandResult(CommandResult.NotValidCommand);
+                PrintCommandResult(DevCommandResult.NotValidCommand);
                 return;
             }
             
             string[] parts = text.Split(' ');
             if (parts == null || parts.Length == 0)
             {
-                PrintCommandResult(CommandResult.NotValidCommand);
+                PrintCommandResult(DevCommandResult.NotValidCommand);
                 return;
             }
 
@@ -127,16 +135,10 @@ namespace DevConsole.Commands
                 {
                     if (commandTextParts.Count < 3)
                     {
-                        PrintCommandResult(CommandResult.NotEnoughArguments, command);
+                        PrintCommandResult(DevCommandResult.NotEnoughArguments, command);
                     }
                     
                     SetVariable(commandTextParts[1], commandTextParts[2]);
-                    break;
-                }
-                // example: /reset [variableName]
-                case "/reset":
-                {
-                    ResetVariable(commandTextParts[1]);
                     break;
                 }
                 // example: /get [variableName]
@@ -153,7 +155,7 @@ namespace DevConsole.Commands
                 }
                 default:
                 {
-                    PrintCommandResult(CommandResult.NotValidCommand, command);
+                    PrintCommandResult(DevCommandResult.NotValidCommand, command);
                     break;
                 }
             }
@@ -163,26 +165,26 @@ namespace DevConsole.Commands
 
         protected virtual void HandleCommandInternal(IReadOnlyList<string> commandTextParts) {}
 
-        protected static void PrintCommandResult(CommandResult result, params object[] parameters)
+        protected static void PrintCommandResult(DevCommandResult result, params object[] parameters)
         {
             switch (result)
             {
-                case CommandResult.None:
+                case DevCommandResult.None:
                     break;
-                case CommandResult.Ok:
+                case DevCommandResult.Ok:
                     Debug.Log($"Ok: {parameters[0]}");
                     break;
-                case CommandResult.NotEnoughArguments:
+                case DevCommandResult.NotEnoughArguments:
                     Debug.LogError($"Command '{parameters[0]}' has not enough arguments!");
                     break;
-                case CommandResult.NotValidCommand:
+                case DevCommandResult.NotValidCommand:
                     Debug.LogError($"Invalid command: '{parameters[0]}'!");
                     break;
-                case CommandResult.NotValidArgument:
+                case DevCommandResult.NotValidArgument:
                     Debug.LogError($"Invalid argument {parameters[0]} for command: '{parameters[1]}'!");
                     break;
-                case CommandResult.NotValidFieldOrArgument:
-                    Debug.LogError($"Invalid argument {parameters[0]} or field name {parameters[1] }for command: '{parameters[2]}'!");
+                case DevCommandResult.NotValidFieldOrArgument:
+                    Debug.LogError($"Invalid argument {parameters[0]} or field name {parameters[1]} for command: '{parameters[2]}'!");
                     break;
             }
         }
@@ -191,25 +193,12 @@ namespace DevConsole.Commands
         {
             if (DevConsoleFieldHandler.SetValue(variableName, value))
             {
-                PrintCommandResult(CommandResult.Ok, 
+                PrintCommandResult(DevCommandResult.Ok, 
                     $"({DevConsoleFieldHandler.GetType(variableName)}){variableName} set to [{value}]");
             }
             else
             {
-                PrintCommandResult(CommandResult.NotValidFieldOrArgument, value, variableName, "/set");
-            }
-        }
-        
-        private static void ResetVariable(string variableName)
-        {
-            if (DevConsoleFieldHandler.ResetValue(variableName, out object value))
-            {
-                PrintCommandResult(CommandResult.Ok, 
-                    $"({DevConsoleFieldHandler.GetType(variableName)}){variableName} set to [{value}]");
-            }
-            else
-            {
-                PrintCommandResult(CommandResult.NotValidArgument, variableName, "/reset");
+                PrintCommandResult(DevCommandResult.NotValidFieldOrArgument, value, variableName, "/set");
             }
         }
 
@@ -217,12 +206,12 @@ namespace DevConsole.Commands
         {
             if (DevConsoleFieldHandler.GetValue(variableName, out object value))
             {
-                PrintCommandResult(CommandResult.Ok,
+                PrintCommandResult(DevCommandResult.Ok,
                     $"({DevConsoleFieldHandler.GetType(variableName)}){variableName} is [{value}]");
             }
             else
             {
-                PrintCommandResult(CommandResult.NotValidArgument, $"{variableName}", "/get");
+                PrintCommandResult(DevCommandResult.NotValidArgument, $"{variableName}", "/get");
             }
         }
 
@@ -230,7 +219,7 @@ namespace DevConsole.Commands
         {
             string names = DevConsoleFieldHandler.GetAllFieldNames();
             
-            PrintCommandResult(CommandResult.Ok, names);
+            PrintCommandResult(DevCommandResult.Ok, names);
         }
     }
 }
