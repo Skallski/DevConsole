@@ -7,8 +7,8 @@ namespace DevConsole.Logging
         private readonly string _timestamp;
         private readonly string _message;
 
-        public LogType LogType { get; private set; }
-        public string StackTrace { get; private set; }
+        public readonly LogType LogType;
+        public readonly string StackTrace;
         public string FormattedMessage { get; private set; }
         
         public DevConsoleLogData(string message, string stackTrace, LogType logType)
@@ -23,19 +23,17 @@ namespace DevConsole.Logging
 
         private string GetFormattedMessage(LogType logType)
         {
-            switch (logType)
+            string color = logType switch
             {
-                default:
-                case LogType.Log:
-                    return $"<color=white>{_timestamp}: {_message}</color>";
-                case LogType.Error:
-                case LogType.Exception:
-                    return $"<color=red>{_timestamp}: {_message}</color>";
-                case LogType.Assert:
-                    return $"<color=green>{_timestamp}: {_message}</color>";
-                case LogType.Warning:
-                    return $"<color=yellow>{_timestamp}: {_message}</color>";
-            }
+                LogType.Log => "white",
+                LogType.Error => "red",
+                LogType.Exception => "red",
+                LogType.Assert => "green",
+                LogType.Warning => "yellow",
+                _ => "white"
+            };
+
+            return $"<color={color}>{_timestamp}: {_message}</color>";
         }
 
         public void SetSelected(bool value)

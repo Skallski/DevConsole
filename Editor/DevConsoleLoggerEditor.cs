@@ -1,4 +1,3 @@
-using System.Reflection;
 using DevConsole.Logging;
 using UnityEditor;
 using UnityEngine;
@@ -30,29 +29,9 @@ namespace DevConsole.Editor
             
             GUI.enabled = Application.isPlaying;
             
-            if (GUILayout.Button("Test Log"))
-            {
-                _devConsoleLogger
-                    .GetType()
-                    .GetMethod("TestLog", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.Invoke(_devConsoleLogger, default);
-            }
-            
-            if (GUILayout.Button("Test LogWarning"))
-            {
-                _devConsoleLogger
-                    .GetType()
-                    .GetMethod("TestLogWarning", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.Invoke(_devConsoleLogger, default);
-            }
-            
-            if (GUILayout.Button("Test LogError"))
-            {
-                _devConsoleLogger
-                    .GetType()
-                    .GetMethod("TestLogError", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.Invoke(_devConsoleLogger, default);
-            }
+            if (GUILayout.Button("Test Log")) Debug.Log("test info");
+            if (GUILayout.Button("Test LogWarning")) Debug.LogWarning("test warning");
+            if (GUILayout.Button("Test LogError")) Debug.LogError("test error");
 
             if (GUI.enabled == false)
             {

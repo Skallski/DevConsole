@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,11 +9,13 @@ namespace DevConsole.Logging
 {
     public class DevConsoleLogLabel : MonoBehaviour, IPointerClickHandler
     {
-        [SerializeField] private ScrollRect _scrollRect;
         [SerializeField] private DevConsoleLogger _logger;
+        [SerializeField] private DevConsoleLogFilters _filters;
+        [Space]
+        [SerializeField] private ScrollRect _scrollRect;
         [SerializeField] private TextMeshProUGUI _label;
         
-        internal event Action<DevConsoleLogData> OnLogClick;
+        internal static event Action<DevConsoleLogData> OnLogClick;
 
         private Coroutine _scrollCoroutine;
         private WaitForEndOfFrame _scrollDelay = new WaitForEndOfFrame();
@@ -23,18 +24,22 @@ namespace DevConsole.Logging
         {
             PrintAllLogs();
 
-            _logger.OnLogReceived += OnLogReceived;
+            DevConsoleLogger.OnClear += ClearLabel;
+            DevConsoleLogger.OnLogReceived += OnLogReceived;
+            DevConsoleLogFilters.FilterToggled += PrintAllLogs;
         }
 
         private void OnDisable()
         {
-            _logger.OnLogReceived -= OnLogReceived;
+            DevConsoleLogger.OnClear += ClearLabel;
+            DevConsoleLogger.OnLogReceived -= OnLogReceived;
+            DevConsoleLogFilters.FilterToggled -= PrintAllLogs;
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
             int lineIndex = TMP_TextUtilities.FindIntersectingLine(_label, Input.mousePosition, null);
-            if (lineIndex >= _logger.Logs.Count)
+            if (lineIndex < 0 || lineIndex >= _logger.Logs.Count)
             {
                 return;
             }
@@ -43,7 +48,6 @@ namespace DevConsole.Logging
             if (logData != null)
             {
                 OnLogClick?.Invoke(logData);
-
                 PrintAllLogs();
             }
         }
@@ -67,11 +71,11 @@ namespace DevConsole.Logging
         private void PrintAllLogs()
         {
             ClearLabel();
-
-            List<DevConsoleLogData> logs = _logger.Logs;
-            foreach (DevConsoleLogData data in logs)
+            
+            DevConsoleLogData[] logsFiltered = _filters.GetFilteredLogs(_logger.Logs);
+            foreach (DevConsoleLogData logData in logsFiltered)
             {
-                PrintLog(data);
+                PrintLog(logData);
             }
             
             ScrollToNewestLog();
@@ -94,7 +98,7 @@ namespace DevConsole.Logging
         }
 
 
-        internal void ClearLabel()
+        private void ClearLabel()
         {
             _label.SetText(string.Empty);
         }

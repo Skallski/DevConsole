@@ -4,7 +4,6 @@ namespace DevConsole.Logging
 {
     public class DevConsoleLogStackTraceDisplay : MonoBehaviour
     {
-        [SerializeField] private DevConsoleLogLabel _devConsoleLogLabel;
         [SerializeField] private RectTransform _stackTraceTransform;
         [SerializeField] private float _basePositionY = -30;
         [SerializeField] private float _baseHeight = 60;
@@ -14,12 +13,14 @@ namespace DevConsole.Logging
 
         private void OnEnable()
         {
-            _devConsoleLogLabel.OnLogClick += OnLogClick;
+            DevConsoleLogger.OnClear += ClearStackTrace;
+            DevConsoleLogLabel.OnLogClick += OnLogClick;
         }
         
         private void OnDisable()
         {
-            _devConsoleLogLabel.OnLogClick -= OnLogClick;
+            DevConsoleLogger.OnClear -= ClearStackTrace;
+            DevConsoleLogLabel.OnLogClick -= OnLogClick;
         }
         
         private void OnLogClick(DevConsoleLogData data)
@@ -64,7 +65,7 @@ namespace DevConsole.Logging
                 new Vector2(_stackTraceTransform.anchoredPosition.x, desiredPositionY);
         }
 
-        internal void ClearStackTrace()
+        private void ClearStackTrace()
         {
             _stackTraceLabel.SetText(string.Empty);
             
