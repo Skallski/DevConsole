@@ -19,7 +19,7 @@ DevConsole is a lightweight multi-functional UI based console window tool. <br>
 The main purpose behind it's creation was to provide easy to use tool that will speed up the debugging and testing inside built projects.
 
 ### Logger
-Dev console's main feature is to display easy to read informations about logs (Info, Warning, Eror, Assert) and exceptions inside the build.
+Dev console's main feature is to display easy to read informations about logs (Info, Warning, Error, Assert) and exceptions inside the build.
 Log messages and their timestamps are printed on vertical scroll view. In order to view stack trace, simply click on the log.
 You can also use filters to display only the logs of certain type.
 
