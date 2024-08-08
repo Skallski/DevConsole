@@ -97,7 +97,6 @@ namespace DevConsole.Logging
             }
         }
 
-
         private void ClearLabel()
         {
             _label.SetText(string.Empty);

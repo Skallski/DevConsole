@@ -1,12 +1,13 @@
 {
   "name": "com.skallu.dev-console",
-  "version": "1.5.1",
-  "displayName": "Skallu Dev Console",
+  "version": "1.5.2",
+  "displayName": "Dev Console",
   "description": "Lightweight UI based developer console.",
   "unity": "2021.3",
   "keywords": [
     "Skallu",
-    "developer",
+    "dev console",
+    "console commands",
     "console"
   ],
   "author": {

@@ -15,12 +15,12 @@ namespace DevConsole.Logging
             [field:SerializeField] internal Toggle Toggle { get; private set; }
             [field:SerializeField] internal LogType LogType { get; private set; }
 
+            private static readonly Color32 ColorOn = new Color32(255, 255, 255, 255);
+            private static readonly Color32 ColorOff = new Color32(200, 200, 200, 128);
+
             internal void OnToggled(bool value)
             {
-                Color currentColor = _image.color;
-                _image.color = value 
-                    ? new Color(currentColor.r, currentColor.g, currentColor.b, 1) 
-                    : new Color(currentColor.r, currentColor.g, currentColor.b, 0.5f);
+                _image.color = value ? ColorOn : ColorOff;
             }
         }
 

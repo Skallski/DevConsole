@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -10,53 +9,52 @@ namespace DevConsole.Commands
 {
     public static class DevConsoleFieldHandler
     {
-        internal class DevConsoleFieldData
+        private class DevConsoleFieldData
         {
-            public readonly FieldInfo FieldInfo;
-            public readonly Object Instance;
-            // public readonly object InitialValue;
-            public readonly string VariableName;
-            public readonly Type FieldType;
+            internal readonly FieldInfo FieldInfo;
+            internal readonly Object Instance;
+            internal readonly string VariableName;
+            internal readonly Type FieldType;
 
-            public DevConsoleFieldData(FieldInfo fieldInfo, Object instance)
+            internal DevConsoleFieldData(FieldInfo fieldInfo, Object instance)
             {
                 FieldInfo = fieldInfo;
                 Instance = instance;
 
                 if (fieldInfo != null)
                 {
-                    // InitialValue = fieldInfo.GetValue(instance);
                     VariableName = fieldInfo.GetCustomAttribute<DevConsoleFieldAttribute>().VariableName;
                     FieldType = fieldInfo.FieldType;
                 }
                 else
                 {
-                    // InitialValue = null;
                     VariableName = string.Empty;
                     FieldType = null;
                 }
             }
         }
 
-        private static readonly List<DevConsoleFieldData> DevConsoleFieldsCache =
-            new List<DevConsoleFieldData>();
-        
+        private static readonly List<DevConsoleFieldData> DevConsoleFieldsCache = new List<DevConsoleFieldData>();
+
         /// <summary>
-        /// Gets data of modifiable variable with certain name
+        /// Gets data of variable
         /// </summary>
-        /// <param name="variableName"> modifiable variable name (the name inside attribute) </param>
-        /// <returns></returns>
-        private static DevConsoleFieldData GetDevConsoleVariable(string variableName)
+        /// <param name="variableName"> name of variable (the name inside attribute) </param>
+        /// <param name="data"></param>
+        /// <returns> true or false, whether the data is found and valid </returns>
+        private static bool TryGetDevConsoleVariable(string variableName, out DevConsoleFieldData data)
         {
-            List<DevConsoleFieldData> allFields = GetAllDevConsoleFields();
-            return allFields.FirstOrDefault(field => field.VariableName.Equals(variableName));
+            IEnumerable<DevConsoleFieldData> allFields = GetAllDevConsoleVariables();
+            data = allFields.FirstOrDefault(field => field.VariableName.Equals(variableName));
+
+            return data != null && data.FieldInfo != null && data.Instance != null;
         }
 
         /// <summary>
-        /// Gets each modifiable variable's data
+        /// Gets data of all variables
         /// </summary>
         /// <returns> List that contains every modifiable variable's data </returns>
-        private static List<DevConsoleFieldData> GetAllDevConsoleFields()
+        private static IEnumerable<DevConsoleFieldData> GetAllDevConsoleVariables()
         {
             if (DevConsoleFieldsCache.Count == 0)
             {
@@ -65,12 +63,12 @@ namespace DevConsole.Commands
 
                 foreach (var assembly in assemblies)
                 {
-                    var types = assembly.GetTypes();
+                    Type[] types = assembly.GetTypes();
                     foreach (var type in types)
                     {
                         if (type.IsSubclassOf(typeof(MonoBehaviour)) || type.IsSubclassOf(typeof(ScriptableObject)))
                         {
-                            var typeFields = type
+                            IEnumerable<FieldInfo> typeFields = type
                                 .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Where(field => field.IsDefined(typeof(DevConsoleFieldAttribute), true));
 
@@ -86,7 +84,7 @@ namespace DevConsole.Commands
             return DevConsoleFieldsCache;
             
             // INNER METHOD
-            // Returns instance of seeking FieldIngo
+            // Returns instance of seeking FieldInfo
             Object GetInstanceOfField(MemberInfo info)
             {
                 Type declaringType = info.DeclaringType;
@@ -112,139 +110,81 @@ namespace DevConsole.Commands
             }
         }
 
+        #region INTERNAL METHODS
         /// <summary>
-        /// 
+        /// Gets value of variable
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="variableName"> name of variable (the name inside attribute) </param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        private static bool IsValid(DevConsoleFieldData data)
+        internal static bool TryGetValue(string variableName, out object value)
         {
-            return data != null && data.FieldInfo != null && data.Instance != null;
-        }
-
-        #region INTERNAL FIELDS
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="variableName"></param>
-        /// <returns></returns>
-        internal static Type GetType(string variableName)
-        {
-            DevConsoleFieldData devConsoleFieldData = GetDevConsoleVariable(variableName);
-            
-            return IsValid(devConsoleFieldData) 
-                ? devConsoleFieldData.FieldType 
-                : null;
-        }
-        
-        /// <summary>
-        /// Gets value of modifiable variable
-        /// </summary>
-        /// <param name="variableName"> modifiable variable name (the name inside attribute) </param>
-        /// <param name="value"> value to return </param>
-        /// <returns> true or false, whether the value has ben get successfully or not </returns>
-        internal static bool GetValue(string variableName, out object value)
-        {
-            value = null;
-            DevConsoleFieldData devConsoleFieldData = GetDevConsoleVariable(variableName);
-            
-            if (IsValid(devConsoleFieldData))
+            if (TryGetDevConsoleVariable(variableName, out DevConsoleFieldData data))
             {
-                value = devConsoleFieldData.FieldInfo.GetValue(devConsoleFieldData.Instance);
-
+                value = data.FieldInfo.GetValue(data.Instance);
                 return true;
             }
             
+            value = null;
             return false;
         }
 
         /// <summary>
-        /// Sets value of modifiable variable
+        /// Sets value of variable
         /// </summary>
-        /// <param name="variableName"> modifiable variable name (the name inside attribute) </param>
+        /// <param name="variableName"> name of variable to modify (the name inside attribute) </param>
         /// <param name="value"> value to set </param>
-        /// <returns> true or false, whether the value has ben set successfully or not </returns>
-        internal static bool SetValue(string variableName, object value)
+        /// <param name="message"></param>
+        internal static bool TrySetValue(string variableName, object value, out string logMessage)
         {
-            DevConsoleFieldData devConsoleFieldData = GetDevConsoleVariable(variableName);
-            if (IsValid(devConsoleFieldData) == false)
+            logMessage = string.Empty;
+            
+            if (TryGetDevConsoleVariable(variableName, out DevConsoleFieldData data) == false)
             {
+                logMessage = $"Variable '{variableName}' not found!";
                 return false;
             }
             
-            FieldInfo fieldInfo = devConsoleFieldData.FieldInfo;
-            Object instance = devConsoleFieldData.Instance;
-            Type fieldType = devConsoleFieldData.FieldType;
-
-            if (fieldInfo.IsLiteral == false && fieldInfo.IsInitOnly == false)
+            FieldInfo fieldInfo = data.FieldInfo;
+            Object instance = data.Instance;
+            Type fieldType = data.FieldType;
+            
+            if (fieldInfo.IsLiteral || fieldInfo.IsInitOnly)
             {
-                try
-                {
-                    if (fieldType == typeof(int))
-                    {
-                        fieldInfo.SetValue(instance, Convert.ToInt32(value));
-                    }
-                    else if (fieldType == typeof(float))
-                    {
-                        fieldInfo.SetValue(instance, Convert.ToSingle(value));
-                    }
-                    else if (fieldType == typeof(string))
-                    {
-                        fieldInfo.SetValue(instance, Convert.ToString(value));
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                catch (FormatException)
-                {
-                    return false;
-                }
-
-                return true;
+                logMessage = $"Variable '{variableName}' cannot be a literal or init only!";
+                return false;
+            }
+            
+            if (fieldType == typeof(int))
+            {
+                fieldInfo.SetValue(instance, Convert.ToInt32(value));
+            }
+            else if (fieldType == typeof(float))
+            {
+                fieldInfo.SetValue(instance, Convert.ToSingle(value));
+            }
+            else if (fieldType == typeof(string))
+            {
+                fieldInfo.SetValue(instance, Convert.ToString(value));
+            }
+            else
+            {
+                logMessage = $"Variable '{variableName}' has unsupported type of {fieldType}";
+                return false;
             }
 
-            return false;
+            return true;
         }
-
-        // /// <summary>
-        // /// Resets field to it's initial value
-        // /// </summary>
-        // /// <param name="variableName"> name of seeking dev console field </param>
-        // /// <param name="initialValue"> expected initial value </param>
-        // /// <returns> true or false, whether value has been successfully reset or not</returns>
-        // internal static bool ResetValue(string variableName, out object initialValue)
-        // {
-        //     initialValue = null;
-        //     
-        //     DevConsoleFieldData devConsoleFieldData = GetDevConsoleVariable(variableName);
-        //     if (IsValid(devConsoleFieldData) == false)
-        //     {
-        //         return false;
-        //     }
-        //     
-        //     initialValue = devConsoleFieldData.InitialValue;
-        //
-        //     return SetValue(variableName, initialValue);
-        // }
 
         /// <summary>
         /// Gets all names of modifiable variables
         /// </summary>
         /// <returns> string that contains field name of each modifiable variable </returns>
-        internal static string GetAllFieldNames()
+        internal static (string, Type)[] GetAllFields()
         {
-            StringBuilder sb = new StringBuilder();
-            
-            List<DevConsoleFieldData> allFields = GetAllDevConsoleFields();
+            IEnumerable<DevConsoleFieldData> allFields = GetAllDevConsoleVariables();
             IEnumerable<DevConsoleFieldData> safeFields = allFields.Where(data => data != null);
-            foreach (var data in safeFields)
-            {
-                sb.Append($"{data.VariableName}, ");
-            }
-
-            return sb.ToString();
+            return safeFields.Select(data => (data.VariableName, data.FieldType)).ToArray();
         }
         #endregion
     }

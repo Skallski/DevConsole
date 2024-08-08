@@ -28,7 +28,7 @@ namespace DevConsole.Logging
                 LogType.Log => "white",
                 LogType.Error => "red",
                 LogType.Exception => "red",
-                LogType.Assert => "green",
+                LogType.Assert => "red",
                 LogType.Warning => "yellow",
                 _ => "white"
             };
