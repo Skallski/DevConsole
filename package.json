@@ -1,18 +1,19 @@
 {
-  "name": "com.skallu.dev-console",
-  "version": "1.5.3",
+  "name": "com.skallski.dev-console",
+  "version": "1.5.4",
   "displayName": "Dev Console",
   "description": "Lightweight UI based developer console.",
   "unity": "2021.3",
   "keywords": [
-    "Skallu",
     "dev console",
     "console commands",
-    "console"
+    "console",
+    "debug",
+    "log"
   ],
   "author": {
-    "name": "Skallu",
+    "name": "Skallski",
     "email": "kaminski.patryk@hotmail.com",
-    "url": "https://github.com/Skallu0711"
+    "url": "https://github.com/Skallski"
   }
 }

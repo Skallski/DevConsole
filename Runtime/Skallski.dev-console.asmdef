@@ -1,10 +1,8 @@
 {
-    "name": "skallu.dev-console.Editor",
-    "rootNamespace": "DevConsole.Editor",
+    "name": "Skallski.dev-console",
+    "rootNamespace": "DevConsole",
     "references": [
-        "GUID:d4d577bffdf604da6b1ffc035a964d50",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f",
-        "GUID:6546d7765b4165b40850b3667f981c26"
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
