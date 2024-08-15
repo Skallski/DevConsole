@@ -30,6 +30,14 @@ namespace DevConsole
             }
         }
 #endif
+        private void Start()
+        {
+            if (IsOpened)
+            {
+                _content.SetActive(false);
+            }
+        }
+
         private void Update()
         {
             if (IsOpened)
